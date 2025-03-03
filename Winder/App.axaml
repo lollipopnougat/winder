@@ -1,0 +1,15 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Winder.App"
+			 xmlns:converter="clr-namespace:Winder.Converter;assembly=Winder" 
+			 RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+	<Application.Resources>
+		<FontFamily x:Key="FontAwesome">avares://Winder/Assets/Fonts#Font Awesome 6 Free</FontFamily>
+		<converter:FileTypeIconTextConverter x:Key="fileTypeIconTextConverter"></converter:FileTypeIconTextConverter>
+	</Application.Resources>
+</Application>
