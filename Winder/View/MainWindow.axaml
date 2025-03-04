@@ -25,18 +25,16 @@
 		</ExperimentalAcrylicBorder>
 		<Grid Margin="5">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="30"/>
+				<RowDefinition Height="35"/>
 				<RowDefinition Height="35"/>
 				<RowDefinition Height="*"/>
 			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="30"/>
-					<ColumnDefinition Width="*" MaxWidth="500"/>
-				</Grid.ColumnDefinitions>
-				<Image Grid.Column="0" Width="24" Height="24" Margin="2,2,2,2" Source="/Assets/Img/winder-logo.png" />
-				<TextBlock Grid.Column="1" Text="{Binding TitleText}" FontSize="20" Margin="2,2,2,2"/>
-			</Grid>
+			<Panel PointerPressed="PanelPointerPressed" Grid.Row="0" Margin="0">
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+					<Image Width="24" Height="24" Margin="2,2,2,2" Source="/Assets/Img/winder-logo.png" />
+					<TextBlock Text="{Binding TitleText}" FontSize="20" Margin="2,2,2,2"/>
+				</StackPanel>
+			</Panel>
 			<Grid Grid.Row="1" Margin="0,0,0,5">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="40"/>
@@ -61,7 +59,13 @@
 					<ColumnDefinition Width="2"/>
 					<ColumnDefinition Width="4*" MinWidth="100"/>
 				</Grid.ColumnDefinitions>
-				<TreeView Grid.Column="0"/>
+				<TreeView Grid.Column="0" ItemsSource="{Binding Nodes}" >
+					<TreeView.ItemTemplate>
+						<TreeDataTemplate ItemsSource="{Binding ChildNodes}">
+							<TextBlock Text="{Binding Title}"/>
+						</TreeDataTemplate>
+					</TreeView.ItemTemplate>
+				</TreeView>
 				<GridSplitter Grid.Column="1" Background="#232323" ResizeDirection="Columns"/>
 				<ListBox Grid.Column="2" SelectionMode="Toggle" ItemsSource="{Binding FileItems}">
 					<ListBox.ItemTemplate>

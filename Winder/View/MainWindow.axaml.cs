@@ -8,5 +8,10 @@ namespace Winder.View
         {
             InitializeComponent();
         }
+
+        private void PanelPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        {
+            this.BeginMoveDrag(e);
+        }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 
 namespace Winder.Service
@@ -70,74 +69,17 @@ namespace Winder.Service
             }
         }
 
-
-        public static List<string> GetRemovableDeviceID()
+        public static List<string> GetChildDirectories(string path)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            List<string> rt = [];
+            try
             {
-                List<string> deviceIDs = [];
-                ManagementObjectSearcher query = new("SELECT * From Win32_LogicalDisk");
-                ManagementObjectCollection queryCollection = query.Get();
-                foreach (ManagementObject mo in queryCollection.Cast<ManagementObject>())
-                {
-
-                    switch (int.Parse(mo["DriveType"]?.ToString() ?? "-1"))
-                    {
-                        case (int)DriveType.Removable:   //可以移动磁盘     
-                            {
-                                //MessageBox.Show("可以移动磁盘");
-                                var tmp = mo["DeviceID"].ToString();
-                                if (tmp != null)
-                                {
-                                    deviceIDs.Add(tmp);
-                                }
-                                break;
-                            }
-                        case (int)DriveType.Fixed:   //本地磁盘     
-                            {
-                                //MessageBox.Show("本地磁盘");
-                                var tmp = mo["DeviceID"].ToString();
-                                if (tmp != null)
-                                {
-                                    deviceIDs.Add(tmp);
-                                }
-                                break;
-                            }
-                        case (int)DriveType.CDRom:   //CD   rom   drives     
-                            {
-                                //MessageBox.Show("CD   rom   drives ");
-                                break;
-                            }
-                        case (int)DriveType.Network:   //网络驱动   
-                            {
-                                //MessageBox.Show("网络驱动器 ");
-                                break;
-                            }
-                        case (int)DriveType.Ram:
-                            {
-                                //MessageBox.Show("驱动器是一个 RAM 磁盘 ");
-                                break;
-                            }
-                        case (int)DriveType.NoRootDirectory:
-                            {
-                                //MessageBox.Show("驱动器没有根目录 ");
-                                break;
-                            }
-                        default:   //defalut   to   folder     
-                            {
-                                //MessageBox.Show("驱动器类型未知 ");
-                                break;
-                            }
-                    }
-
-                }
-                return deviceIDs;
-
-            } else
+                rt.AddRange(Directory.GetDirectories(path).Select(x => Path.GetFileName(x)));
+            } catch (Exception err)
             {
-                return ["/"];
+                Debug.WriteLine($"err {err}");
             }
+            return rt;
         }
-
     }
 }

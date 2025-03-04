@@ -39,7 +39,6 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.5" />
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.9" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="System.Management" Version="9.0.2" />
   </ItemGroup>
 
 

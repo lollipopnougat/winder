@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Winder.Model;
 using Winder.Service;
+using Winder.Storage;
 
 namespace Winder.ViewModel
 {
@@ -25,8 +26,10 @@ namespace Winder.ViewModel
             PathBoxText = "~";
             fileItems = [];
             Nodes = [];
+            store = Store.GenNewStore();
             SetAddressPath();
             BuildTreeView();
+
         }
 
         [ObservableProperty]
@@ -40,6 +43,9 @@ namespace Winder.ViewModel
 
         [ObservableProperty]
         private bool? upBtnEnabled;
+
+        private Store store;
+
 
         private ObservableCollection<FileItem> SelectedItems { get; } = [];
 
@@ -106,17 +112,13 @@ namespace Winder.ViewModel
             if (!string.IsNullOrEmpty(cwd) && Directory.Exists(cwd))
             {
                 DirectoryInfo dir = new(cwd);
-                DirectoryInfo[] dirs = dir.GetDirectories();
-                FileInfo[] files = dir.GetFiles();
+                List<DirectoryInfo> dirs = [.. dir.GetDirectories()];
+                dirs.Sort((a, b) => StringComparer.CurrentCulture.Compare(a.Name,b.Name));
+                List<FileInfo> files = [.. dir.GetFiles()];
+                files.Sort((a, b) => StringComparer.CurrentCulture.Compare(a.Name, b.Name));
                 FileItems.Clear();
-                foreach (DirectoryInfo dirInfo in dirs)
-                {
-                    FileItems.Add(FileItemViewModel.CreateViewModel(dirInfo));
-                }
-                foreach (FileInfo file in files)
-                {
-                    FileItems.Add(FileItemViewModel.CreateViewModel(file));
-                }
+                dirs.ForEach(dirInfo => FileItems.Add(FileItemViewModel.CreateViewModel(dirInfo)));
+                files.ForEach(file => FileItems.Add(FileItemViewModel.CreateViewModel(file)));
                 Debug.WriteLine($"count = {FileItems.Count}");
             }
         }
@@ -149,6 +151,8 @@ namespace Winder.ViewModel
             }
             Debug.WriteLine($"double click");
         }
+
+
 
     }
 }
