@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -44,7 +45,7 @@ namespace Winder.ViewModel
         [ObservableProperty]
         private bool? upBtnEnabled;
 
-        private Store store;
+        private readonly Store store;
 
 
         private ObservableCollection<FileItem> SelectedItems { get; } = [];
@@ -69,6 +70,7 @@ namespace Winder.ViewModel
                     PathBoxText = dir.FullName;
                     var dirPath = Path.GetDirectoryName(Cwd);
                     UpBtnEnabled = dirPath != null;
+                    store.History.Add(dir.FullName);
                 }
                 else if (file is FileInfo fil)
                 {
@@ -123,9 +125,14 @@ namespace Winder.ViewModel
             }
         }
         [RelayCommand]
-        private void RightClickItem()
+        private void RightClickItem(object? sender)
         {
-
+            Debug.WriteLine($"{sender}");
+            var ctl = sender as Control;
+            if (ctl != null)
+            {
+                FlyoutBase.ShowAttachedFlyout(ctl);
+            }
         }
 
         [RelayCommand]
@@ -152,7 +159,18 @@ namespace Winder.ViewModel
             Debug.WriteLine($"double click");
         }
 
+        [RelayCommand]
+        public void BackBtnClick(object? sender)
+        {
+            
+        }
 
+
+        [RelayCommand]
+        public void ForwardBtnClick(object? param)
+        {
+
+        }
 
     }
 }

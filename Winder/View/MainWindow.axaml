@@ -67,21 +67,34 @@
 					</TreeView.ItemTemplate>
 				</TreeView>
 				<GridSplitter Grid.Column="1" Background="#232323" ResizeDirection="Columns"/>
-				<ListBox Grid.Column="2" SelectionMode="Toggle" ItemsSource="{Binding FileItems}">
-					<ListBox.ItemTemplate>
-						<DataTemplate>
-							<StackPanel Orientation="Horizontal" x:Name="stackPanel">
+				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}">
+					<DataGrid.Columns>
+						<DataGridTemplateColumn Header="名称">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<StackPanel Orientation="Horizontal">
+										<control:FileIcon Margin="5,0,0,0" FileType="{Binding FileType}" VerticalAlignment="Center" FontSize="16" />
+										<TextBlock Margin="2,0,0,0" Text="{Binding Name}" VerticalAlignment="Center" />
+									</StackPanel>
+
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
+						<!--<DataGridTextColumn Header="名称" Binding="{Binding Name}"></DataGridTextColumn>-->
+						<!--<DataTemplate>
+							<StackPanel Orientation="Horizontal">
 								<Interaction.Behaviors>
 									<EventTriggerBehavior EventName="DoubleTapped">
 										<InvokeCommandAction Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}" CommandParameter="{Binding .}" />
 									</EventTriggerBehavior>
+									<EventTriggerBehavior EventName="Tapped">
+										<InvokeCommandAction Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RightClickItemCommand}" CommandParameter="{Binding .,RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
+									</EventTriggerBehavior>
 								</Interaction.Behaviors>
-								<control:FileIcon FileType="{Binding FileType}" FontSize="16" />
-								<TextBlock Margin="5,0,0,0" Text="{Binding Name}" />
 							</StackPanel>
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-				</ListBox>
+						</DataTemplate>-->
+					</DataGrid.Columns>
+				</DataGrid>
 				<!--<ScrollViewer Grid.Column="2">
 					<DataGrid Margin="0" ItemsSource="{Binding FileItems}">
 						<DataGrid.Columns>
