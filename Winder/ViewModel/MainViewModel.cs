@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -125,19 +126,37 @@ namespace Winder.ViewModel
             }
         }
         [RelayCommand]
-        private void RightClickItem(object? sender)
+        private void ClickItem(object? param)
         {
-            Debug.WriteLine($"{sender}");
-            var ctl = sender as Control;
-            if (ctl != null)
+            Debug.WriteLine($"{param?.GetType().FullName}");
+            if (param is PointerPressedEventArgs e)
             {
-                FlyoutBase.ShowAttachedFlyout(ctl);
+                if (IsRightClick(e))
+                {
+                    var ctl = e.Source as Control;
+                    if (ctl != null)
+                    {
+                        FlyoutBase.ShowAttachedFlyout(ctl);
+                    }
+                }
             }
+            //Debug.WriteLine($"{sender}");
+            //var ctl = sender as Control;
+            //if (ctl != null)
+            //{
+            //    FlyoutBase.ShowAttachedFlyout(ctl);
+            //}
+        }
+
+        private static bool IsRightClick(PointerPressedEventArgs e)
+        {
+            return e.GetCurrentPoint(e.Source as Avalonia.Visual).Properties.IsLeftButtonPressed;
         }
 
         [RelayCommand]
         public void DoubleClick(object? param)
         {
+            Debug.WriteLine($"{param?.GetType().FullName}");
             if (param is FileItemViewModel item)
             {
                 if (item.FileType == (int)FileItemType.Directory)
@@ -155,6 +174,10 @@ namespace Winder.ViewModel
                         Debug.WriteLine($"double click {ex}");
                     }
                 }
+            }
+            if (param is TappedEventArgs e)
+            {
+                Debug.WriteLine($"{e.Source?.GetType().Name}");
             }
             Debug.WriteLine($"double click");
         }

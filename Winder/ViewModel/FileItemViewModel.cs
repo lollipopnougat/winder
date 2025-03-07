@@ -25,7 +25,7 @@ namespace Winder.ViewModel
             this.name = fileItem.Name;
             this.lastAccessTime = fileItem.LastAccessTime.ToString("g");
             this.lastWriteTime = fileItem.LastWriteTime.ToString("g");
-            this.length = $"{fileItem.Length / 1024}KB";
+            this.length = fileItem.Length == -1 ? "" : $"{fileItem.Length / 1024}KB";
             this.FullPath = fileItem.FullPath;
         }
 

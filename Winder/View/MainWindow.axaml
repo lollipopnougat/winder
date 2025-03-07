@@ -67,19 +67,51 @@
 					</TreeView.ItemTemplate>
 				</TreeView>
 				<GridSplitter Grid.Column="1" Background="#232323" ResizeDirection="Columns"/>
-				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}">
+				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}" CanUserSortColumns="True" CanUserResizeColumns="True">
+					<!--<DataGrid.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="打开" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}"
+									  />
+							<MenuItem Header="复制" Command="{Binding }"
+									  CommandParameter="{Binding}" />
+						</ContextMenu>
+					</DataGrid.ContextMenu>-->
+					<DataGrid.Styles>
+						<!-- 禁用列标题的上下文菜单 -->
+						<Style Selector="DataGridColumnHeader">
+							<Setter Property="ContextMenu" Value="{x:Null}"/>
+						</Style>
+						<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
+							<Setter Property="IsVisible" Value="False" />
+						</Style>
+					</DataGrid.Styles>
+					<DataGrid.RowTheme>
+					</DataGrid.RowTheme>
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="DoubleTapped">
+							<InvokeCommandAction Command="{Binding DoubleClickCommand}" PassEventArgsToCommand="True"  />
+						</EventTriggerBehavior>
+						<EventTriggerBehavior EventName="PointerPressed">
+							<InvokeCommandAction Command="{Binding ClickItemCommand}" PassEventArgsToCommand="True"  />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
 					<DataGrid.Columns>
-						<DataGridTemplateColumn Header="名称">
+						<DataGridTemplateColumn Header="名称" Width="150" MinWidth="80">
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
-									<StackPanel Orientation="Horizontal">
-										<control:FileIcon Margin="5,0,0,0" FileType="{Binding FileType}" VerticalAlignment="Center" FontSize="16" />
-										<TextBlock Margin="2,0,0,0" Text="{Binding Name}" VerticalAlignment="Center" />
-									</StackPanel>
-
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="30"/>
+											<ColumnDefinition Width="*"/>
+										</Grid.ColumnDefinitions>
+										<control:FileIcon Grid.Column="0" Width="30" Margin="5,0,0,0" FileType="{Binding FileType}" VerticalAlignment="Center" FontSize="16" />
+										<TextBlock Grid.Column="1" Margin="2,0,0,0" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+									</Grid>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
+						<DataGridTextColumn Header="修改日期" Width="150" Binding="{Binding LastWriteTime}" IsReadOnly="True" />
+						<DataGridTextColumn Header="大小" Width="100" Binding="{Binding Length}" IsReadOnly="True" />
 						<!--<DataGridTextColumn Header="名称" Binding="{Binding Name}"></DataGridTextColumn>-->
 						<!--<DataTemplate>
 							<StackPanel Orientation="Horizontal">
