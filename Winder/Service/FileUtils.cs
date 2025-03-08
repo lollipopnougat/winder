@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Winder.Service
 {
@@ -69,7 +70,13 @@ namespace Winder.Service
             }
         }
 
-        public static List<string> GetChildDirectories(string path)
+        public static readonly HashSet<string> windowsSystemDirs = ["recovery", "system volume information", "$recycle.bin", "perflogs", "documents and settings", "config.msi"];
+        public static bool IsRootDirectory(string path)
+        {
+            return Path.GetPathRoot(path) == path;
+        }
+
+        public static List<string> GetChildDirectoriesSafe(string path)
         {
             List<string> rt = [];
             try
@@ -80,6 +87,86 @@ namespace Winder.Service
                 Debug.WriteLine($"err {err}");
             }
             return rt;
+        }
+
+        private static void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
+        {
+            // Get information about the source directory
+            var dir = new DirectoryInfo(sourceDir);
+
+            // Check if the source directory exists
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+            }
+
+            // Cache directories before we start copying
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            // Create the destination directory
+            if (!Directory.Exists(destinationDir))
+            {
+                if (File.Exists(destinationDir))
+                {
+                    throw new ArgumentException($"Destination is a file: ${destinationDir}");
+                }
+                Directory.CreateDirectory(destinationDir);
+            }
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            // If recursive and copying subdirectories, recursively call this method
+            if (recursive)
+            {
+                foreach (DirectoryInfo subDir in dirs)
+                {
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    CopyDirectory(subDir.FullName, newDestinationDir, true);
+                }
+            }
+        }
+
+        public static async Task CopyFileAsync(string source, string destination)
+        {
+            await Task.Run(() =>
+            {
+                bool isCopyDir = Directory.Exists(source);
+                if (!isCopyDir && !File.Exists(source))
+                {
+                    throw new FileNotFoundException($"Source file not found: {source}");
+                }
+                if (isCopyDir)
+                {
+                    CopyDirectory(source, destination, true);
+                }
+                else
+                {
+                    string fileName = Path.GetFileName(source);
+                    File.Copy(source, Path.Combine(destination, fileName));
+                }
+            });
+        }
+
+        public static async Task MoveFileAsync(string source, string destination)
+        {
+            await Task.Run(() =>
+            {
+                bool isDir = Directory.Exists(source);
+                string fileName = Path.GetFileName(source);
+                if (isDir)
+                {
+                    Directory.Move(source, Path.Combine(destination, fileName));
+                } else
+                {
+                    
+                    File.Move(source, Path.Combine(destination, fileName));
+                }
+            });
         }
     }
 }

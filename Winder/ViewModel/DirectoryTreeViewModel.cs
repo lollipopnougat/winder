@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using Winder.Model;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -20,9 +19,9 @@ namespace Winder.ViewModel
         private List<string>? pathRoute;
 
         
-        private ObservableCollection<DirectoryNode> rootNode;
+        private ObservableCollection<TreeViewItemViewModel> rootNode;
 
-        public ObservableCollection<DirectoryNode> RootNode => rootNode;
+        public ObservableCollection<TreeViewItemViewModel> RootNode => rootNode;
 
     }
 }

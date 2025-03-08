@@ -179,5 +179,47 @@ namespace Winder.Model
                     return FileItemType.OtherFile;
             }
         }
+
+        public string FileTypeStr
+        {
+            get
+            {
+                switch(fileType)
+                {
+                    case (int)FileItemType.ArchiveFile:
+                        return "压缩文件";
+                    case (int)FileItemType.ImageFile:
+                        return "图片文件";
+                    case (int)FileItemType.LinkFile:
+                        return "链接文件";
+                    case (int)FileItemType.WordFile:
+                        return "Word文档";
+                    case (int)FileItemType.ExcelFile:
+                        return "Excel电子表格";
+                    case (int)FileItemType.PowerPointFile:
+                        return "PowerPoint演示文稿";
+                    case (int)FileItemType.VideoFile:
+                        return "视频文件";
+                    case (int)FileItemType.SourceCodeFile:
+                        return "源代码文件";
+                    case (int)FileItemType.PlainTextFile:
+                        return "文本文档";
+                    case (int)FileItemType.Directory:
+                        return "文件夹";
+                    case (int)FileItemType.AudioFile:
+                        return "音频文件";
+                    case (int)FileItemType.OtherFile:
+                        return "未知文件类型";
+                    case (int)FileItemType.CharFile:
+                        return "字符设备文件";
+                    case (int)FileItemType.libFile:
+                        return "库文件";
+                    case (int)FileItemType.ExecFile:
+                        return "可执行文件";
+                    default:
+                        return "未知文件类型";
+                }
+            }
+        }
     }
 }

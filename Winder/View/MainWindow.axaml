@@ -3,6 +3,7 @@
         xmlns:vm="using:Winder.ViewModel"
 		xmlns:model="using:Winder.Model"
 		xmlns:control="clr-namespace:Winder.Controls"
+		xmlns:utils="clr-namespace:Winder.Utils"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -10,8 +11,8 @@
 		TransparencyLevelHint="AcrylicBlur"
 		ExtendClientAreaToDecorationsHint="True"
 		Background="Transparent"
-		MinWidth="300"
-		MinHeight="100"
+		MinWidth="400"
+		MinHeight="200"
 		x:DataType="vm:MainViewModel"
 		x:Name="mainWindow">
 	<Design.DataContext>
@@ -28,6 +29,7 @@
 				<RowDefinition Height="35"/>
 				<RowDefinition Height="35"/>
 				<RowDefinition Height="*"/>
+				<RowDefinition Height="16"/>
 			</Grid.RowDefinitions>
 			<Panel PointerPressed="PanelPointerPressed" Grid.Row="0" Margin="0">
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
@@ -43,15 +45,21 @@
 					<ColumnDefinition Width="*" MinWidth="100"/>
 					<ColumnDefinition Width="40"/>
 				</Grid.ColumnDefinitions>
-				<Button Grid.Column="0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold">&#xf060;</Button>
-				<Button Grid.Column="1" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold">&#xf061;</Button>
-				<Button IsEnabled="{Binding UpBtnEnabled}" Command="{Binding UpBtnClickCommand}" Grid.Column="2" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold">&#xf062;</Button>
+				<Grid.Styles>
+					<Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+						<Setter Property="Background" Value="Transparent"/>
+					</Style>
+				</Grid.Styles>
+				<Button Classes="btn" Grid.Column="0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding CanGoBack}" Command="{Binding BackBtnClickCommand}">&#xf060;</Button>
+				<Button Classes="btn" Grid.Column="1" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding CanGoForward}" Command="{Binding ForwardBtnClickCommand}">&#xf061;</Button>
+				<Button Classes="btn" Grid.Column="2" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding UpBtnEnabled}" Command="{Binding UpBtnClickCommand}" >&#xf062;</Button>
 				<AutoCompleteBox Grid.Column="3" Margin="0" Height="32" FilterMode="StartsWith" Text="{Binding PathBoxText}">
+					<!-- AsyncPopulator="{Binding MyAutoCompletePath}" -->
 					<AutoCompleteBox.KeyBindings>
-						<KeyBinding Command="{Binding SetAddressPathCommand}" Gesture="Enter" />
+						<KeyBinding Command="{Binding SetAddressPathFromUICommand}" Gesture="Enter" />
 					</AutoCompleteBox.KeyBindings>
 				</AutoCompleteBox>
-				<Button Grid.Column="4" Margin="5,0,0,0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding SetAddressPathCommand}">&#xf2f9;</Button>
+				<Button Grid.Column="4" Margin="5,0,0,0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding SetAddressPathFromUICommand}">&#xf2f9;</Button>
 			</Grid>
 			<Grid Grid.Row="2">
 				<Grid.ColumnDefinitions>
@@ -59,24 +67,69 @@
 					<ColumnDefinition Width="2"/>
 					<ColumnDefinition Width="4*" MinWidth="100"/>
 				</Grid.ColumnDefinitions>
-				<TreeView Grid.Column="0" ItemsSource="{Binding Nodes}" >
+				<TreeView Grid.Column="0" ItemsSource="{Binding Nodes}" SelectionMode="Single" SelectedItem="{Binding SelectedNode}" >
+					<TreeView.Styles>
+						<Style Selector="TreeViewItem">
+							<Setter Property="utils:TreeViewItemBehavior.ExpandedCommand" Value="{Binding #mainWindow.((vm:MainViewModel)DataContext).ExpandNodeCommand}" />
+							<Setter Property="utils:TreeViewItemBehavior.ItemClickCommand" Value="{Binding #mainWindow.((vm:MainViewModel)DataContext).ClickTreeViewCommand}" />
+						</Style>
+					</TreeView.Styles>
 					<TreeView.ItemTemplate>
 						<TreeDataTemplate ItemsSource="{Binding ChildNodes}">
 							<TextBlock Text="{Binding Title}"/>
 						</TreeDataTemplate>
 					</TreeView.ItemTemplate>
 				</TreeView>
-				<GridSplitter Grid.Column="1" Background="#232323" ResizeDirection="Columns"/>
-				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}" CanUserSortColumns="True" CanUserResizeColumns="True">
-					<!--<DataGrid.ContextMenu>
-						<ContextMenu>
-							<MenuItem Header="打开" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}"
+				<GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}" CanUserSortColumns="True" CanUserResizeColumns="True" x:Name="dataGrid">
+					<DataGrid.Resources>
+						<ContextMenu x:Key="gridRowMenu">
+							<MenuItem Header="打开" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}"
 									  />
-							<MenuItem Header="复制" Command="{Binding }"
-									  CommandParameter="{Binding}" />
+							<MenuItem Header="复制" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).CopyFileClickCommand}"
+									  CommandParameter="{Binding #dataGrid.SelectedItem}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf0c5;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold"/>
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="剪切" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).CutFileClickCommand}"
+									  CommandParameter="{Binding #dataGrid.SelectedItem}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf0c4;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
+
+							<MenuItem Header="粘贴" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).PasteFileClick}"
+									   IsVisible="{Binding #mainWindow.((vm:MainViewModel)DataContext).CanPaste}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf0ea;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="删除" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RemoveFileClickCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf1f8;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
 						</ContextMenu>
-					</DataGrid.ContextMenu>-->
+						<ContextMenu x:Key="gridMenu">
+							<MenuItem Header="刷新" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RefreshListCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}"
+									  >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf021;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="粘贴" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).PasteFileClick}"
+									   IsVisible="{Binding #mainWindow.((vm:MainViewModel)DataContext).CanPaste}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf0ea;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
+						</ContextMenu>
+					</DataGrid.Resources>
 					<DataGrid.Styles>
+						<Style Selector="DataGridCell TextBlock">
+							<Setter Property="TextTrimming" Value="CharacterEllipsis" />
+						</Style>
 						<!-- 禁用列标题的上下文菜单 -->
 						<Style Selector="DataGridColumnHeader">
 							<Setter Property="ContextMenu" Value="{x:Null}"/>
@@ -84,69 +137,63 @@
 						<Style Selector="DataGrid:focus DataGridCell:current /template/ Grid#FocusVisual">
 							<Setter Property="IsVisible" Value="False" />
 						</Style>
+						<Style Selector="DataGrid DataGridCell:current /template/ Grid#FocusVisual">
+							<Setter Property="IsVisible" Value="False" />
+						</Style>
+						<Style Selector="DataGrid:focus DataGridCell:selected:focus:current /template/ Grid#FocusVisual">
+							<Setter Property="IsVisible" Value="False" />
+						</Style>
+						<Style Selector="DataGridRow">
+							<Setter Property="ContextMenu" Value="{StaticResource ResourceKey=gridRowMenu}" />
+						</Style>
+						<Style Selector="DataGridRowsPresenter">
+							<Setter Property="Background" Value="Transparent" />
+							<Setter Property="ContextMenu" Value="{StaticResource ResourceKey=gridMenu}" />
+						</Style>
+						<Style Selector="DataGridRow">
+							<Setter Property="utils:DataGridRowDTBehavior.DoubleTappedCommand" Value="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}" />
+						</Style>
 					</DataGrid.Styles>
 					<DataGrid.RowTheme>
 					</DataGrid.RowTheme>
-					<Interaction.Behaviors>
-						<EventTriggerBehavior EventName="DoubleTapped">
-							<InvokeCommandAction Command="{Binding DoubleClickCommand}" PassEventArgsToCommand="True"  />
-						</EventTriggerBehavior>
-						<EventTriggerBehavior EventName="PointerPressed">
-							<InvokeCommandAction Command="{Binding ClickItemCommand}" PassEventArgsToCommand="True"  />
-						</EventTriggerBehavior>
-					</Interaction.Behaviors>
 					<DataGrid.Columns>
-						<DataGridTemplateColumn Header="名称" Width="150" MinWidth="80">
+						<DataGridTemplateColumn Width="30" MaxWidth="30" MinWidth="30">
 							<DataGridTemplateColumn.CellTemplate>
 								<DataTemplate>
 									<Grid>
 										<Grid.ColumnDefinitions>
 											<ColumnDefinition Width="30"/>
-											<ColumnDefinition Width="*"/>
 										</Grid.ColumnDefinitions>
-										<control:FileIcon Grid.Column="0" Width="30" Margin="5,0,0,0" FileType="{Binding FileType}" VerticalAlignment="Center" FontSize="16" />
-										<TextBlock Grid.Column="1" Margin="2,0,0,0" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+										<control:FileIcon Grid.Column="0" Width="40" Margin="2,0,0,0" FileType="{Binding FileType}" VerticalAlignment="Center" FontSize="16" />
 									</Grid>
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
+						<DataGridTextColumn Header="名称" Width="150" Binding="{Binding Name}" IsReadOnly="True" />
 						<DataGridTextColumn Header="修改日期" Width="150" Binding="{Binding LastWriteTime}" IsReadOnly="True" />
+						<DataGridTextColumn Header="类型" Width="100" Binding="{Binding FileTypeStr}" IsReadOnly="True" />
 						<DataGridTextColumn Header="大小" Width="100" Binding="{Binding Length}" IsReadOnly="True" />
-						<!--<DataGridTextColumn Header="名称" Binding="{Binding Name}"></DataGridTextColumn>-->
-						<!--<DataTemplate>
-							<StackPanel Orientation="Horizontal">
-								<Interaction.Behaviors>
-									<EventTriggerBehavior EventName="DoubleTapped">
-										<InvokeCommandAction Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}" CommandParameter="{Binding .}" />
-									</EventTriggerBehavior>
-									<EventTriggerBehavior EventName="Tapped">
-										<InvokeCommandAction Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RightClickItemCommand}" CommandParameter="{Binding .,RelativeSource={RelativeSource AncestorType=StackPanel}}"/>
-									</EventTriggerBehavior>
-								</Interaction.Behaviors>
-							</StackPanel>
-						</DataTemplate>-->
+						
 					</DataGrid.Columns>
 				</DataGrid>
-				<!--<ScrollViewer Grid.Column="2">
-					<DataGrid Margin="0" ItemsSource="{Binding FileItems}">
-						<DataGrid.Columns>
-							<DataGridTextColumn Header="Name" Width="2*" Binding="{Binding Name}" />
-							<DataGridTemplateColumn Header="名称" Width="2*">
-								<DataGridTemplateColumn.CellTemplate>
-									<DataTemplate>
-										<StackPanel Orientation="Horizontal">
-											<TextBlock Text="&#xf07b;" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
-											<TextBlock Text="{Binding Name}" />
-										</StackPanel>
-									</DataTemplate>
-								</DataGridTemplateColumn.CellTemplate>
-							</DataGridTemplateColumn>
-
-						</DataGrid.Columns>
-					</DataGrid>
-				</ScrollViewer>-->
+				<Grid Grid.Column="2" Margin="0" Background="Transparent" IsVisible="{Binding IsError}">
+					<ExperimentalAcrylicBorder IsHitTestVisible="False">
+						<ExperimentalAcrylicBorder.Material>
+							<ExperimentalAcrylicMaterial BackgroundSource="Digger" TintColor="Black" TintOpacity="1" MaterialOpacity="0.55" />
+						</ExperimentalAcrylicBorder.Material>
+					</ExperimentalAcrylicBorder>
+					<Panel Margin="0">
+						<TextBlock FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding ErrorMsg}" />
+						
+					</Panel>
+				</Grid>
+			</Grid>
+			<Grid Grid.Row="3" Margin="5,0,0,0">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" MinWidth="50"/>
+				</Grid.ColumnDefinitions>
+				<TextBlock Text="{Binding StatusText}" />
 			</Grid>
 		</Grid>
 	</Panel>
-
 </Window>

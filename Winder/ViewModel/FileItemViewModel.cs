@@ -25,8 +25,33 @@ namespace Winder.ViewModel
             this.name = fileItem.Name;
             this.lastAccessTime = fileItem.LastAccessTime.ToString("g");
             this.lastWriteTime = fileItem.LastWriteTime.ToString("g");
-            this.length = fileItem.Length == -1 ? "" : $"{fileItem.Length / 1024}KB";
+            this.length = GetFileLengthStr(fileItem.Length);
             this.FullPath = fileItem.FullPath;
+            this.FileTypeStr = fileItem.FileTypeStr;
+        }
+
+        private static string GetFileLengthStr(long len)
+        {
+            if (len == -1)
+            {
+                return "";
+            }
+            long kB = len / 1024;
+            long mB = kB / 1024;
+            long gB = mB / 1024;
+            if (kB == 0)
+            {
+                return $"{len}B";
+            } else if (mB == 0)
+            {
+                return $"{kB}KB";
+            } else if (gB == 0)
+            {
+                return $"{mB}MB";
+            } else
+            {
+                return $"{gB}GB";
+            }
         }
 
         //private FileAttributes attributes;
@@ -44,6 +69,9 @@ namespace Winder.ViewModel
         private string name;
         [ObservableProperty]
         private bool hidden;
+
+        [ObservableProperty]
+        private string fileTypeStr;
 
         public string FullPath;
 

@@ -6,8 +6,7 @@
         x:Class="Winder.Dialog"
 		TransparencyLevelHint="AcrylicBlur"
 		ExtendClientAreaToDecorationsHint="True"
-		Background="Transparent"
-        Title="">
+		Background="Transparent">
 	<Panel>
 		<Grid>
 			
