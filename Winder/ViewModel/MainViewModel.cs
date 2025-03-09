@@ -29,8 +29,10 @@ namespace Winder.ViewModel
             TitleText = $"~ - Winder";
             PathBoxText = "~";
             fileItems = [];
-            Nodes = [];
+            nodes = [];
             MyAutoCompletePath = this.AutoCompletePath;
+            ErrorMsg = "";
+            StatusText = "";
             store = Store.GenNewStore();
             SetAddressPathFromUI();
             BuildTreeView();
@@ -76,16 +78,16 @@ namespace Winder.ViewModel
         private readonly Store store;
 
         [ObservableProperty]
-        private ObservableCollection<FileItemViewModel> selectedItems;
+        private ObservableCollection<FileItemViewModel>? selectedItems;
 
         [ObservableProperty]
         public ObservableCollection<FileItemViewModel> fileItems;
 
         [ObservableProperty]
-        private ObservableCollection<TreeViewItemViewModel>? nodes;
+        private ObservableCollection<TreeViewItemViewModel> nodes;
 
         [ObservableProperty]
-        private TreeViewItemViewModel selectedNode;
+        private TreeViewItemViewModel? selectedNode;
 
         [RelayCommand]
         private void SetAddressPathFromUI()
@@ -104,13 +106,18 @@ namespace Winder.ViewModel
                         FileUtils.StartFile(fil.FullName);
                         PathBoxText = Cwd;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
 
                     }
                 }
             }
 
+        }
+        [RelayCommand]
+        private void ClearAddressBox()
+        {
+            PathBoxText = "";
         }
 
         private void SetCurrentWorkingDirectory(string dirFullName, string? title = null, bool noHis = false)
@@ -133,8 +140,13 @@ namespace Winder.ViewModel
 
         private void BuildTreeView()
         {
-            List<string> paths = [.. Cwd.Replace("\\", "/").Split("/")];
-            Nodes.Add(TreeViewItemViewModel.BuildNodeTree(Cwd));
+            if (Cwd != null && Nodes != null)
+            {
+                List<string> paths = [.. Cwd.Replace("\\", "/").Split("/")];
+                List<TreeViewItemViewModel> tNodes = TreeViewItemViewModel.BuildNodeTree(Cwd);
+                tNodes.ForEach(x => Nodes.Add(x));
+
+            }
 
         }
         [RelayCommand]
@@ -150,12 +162,15 @@ namespace Winder.ViewModel
         [RelayCommand]
         private void RefreshList()
         {
-            SetListView(Cwd);
+            if (Cwd != null)
+            {
+                SetListView(Cwd);
+            }
         }
         private void SetListView(string cwd)
         {
 
-            if (!string.IsNullOrEmpty(cwd) && Directory.Exists(cwd))
+            if (!string.IsNullOrEmpty(cwd) && Directory.Exists(cwd) && FileItems != null)
             {
                 IsError = false;
                 try
@@ -254,7 +269,7 @@ namespace Winder.ViewModel
         {
             try
             {
-                var res = await Task.Run(() =>
+                return await Task.Run(() =>
                 {
                     List<string> rt = [];
                     if (text == null)
@@ -263,19 +278,14 @@ namespace Winder.ViewModel
                     }
                     else if (Directory.Exists(text))
                     {
-                        DirectoryInfo dir = new(text);
-                        List<DirectoryInfo> dirs = [.. dir.GetDirectories()];
-                        rt = [.. dirs.Select(x => x.FullName)];
+                        rt = [.. Directory.GetDirectories(text)];
                     }
                     else if (Directory.Exists(Path.GetDirectoryName(text)))
                     {
                         var parent = Path.GetDirectoryName(text);
                         if (parent != null)
                         {
-                            DirectoryInfo dir = new(parent);
-                            List<DirectoryInfo> dirs = [.. dir.GetDirectories()];
-                            string prefix = Path.GetFileName(text);
-                            rt = [.. dirs.Where(x => x.Name.StartsWith(prefix)).Select(x => x.FullName)];
+                            rt = [.. Directory.GetDirectories(parent)];
                         }
 
                     }
@@ -284,9 +294,8 @@ namespace Winder.ViewModel
             }
             catch (Exception)
             {
-
+                return [];
             }
-            return [];
         }
 
         [RelayCommand]
@@ -314,7 +323,7 @@ namespace Winder.ViewModel
         [RelayCommand]
         public async Task PasteFileClick(object? param)
         {
-            if (store.CopyFile != null)
+            if (store.CopyFile != null && Cwd != null)
             {
 
                 if (store.IsCutPaste)
@@ -340,6 +349,14 @@ namespace Winder.ViewModel
                 StatusText = "删除文件中...";
                 await Emik.Rubbish.MoveAsync(item.FullPath);
                 RefreshList();
+            }
+        }
+        [RelayCommand]
+        public void RenameFileClick(object? param)
+        {
+            if (param is FileItemViewModel item)
+            {
+                item.Editing = true;
             }
         }
 

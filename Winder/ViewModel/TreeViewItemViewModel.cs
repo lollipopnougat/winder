@@ -78,8 +78,9 @@ namespace Winder.ViewModel
 
         }
 
-        public static TreeViewItemViewModel BuildNodeTree(string cwd)
+        public static List<TreeViewItemViewModel> BuildNodeTree(string cwd)
         {
+            List<TreeViewItemViewModel> rt = [];
             string phyPath = cwd.Replace("\\", "/");
             List<string> pathRoute = [.. phyPath.Split("/")];
             TreeViewItemViewModel root = new("", "", "此电脑");
@@ -112,8 +113,11 @@ namespace Winder.ViewModel
                 }
                 CreateNode(root, pathRoute);
             }
-
-            return root;
+            rt.Add(root);
+            TreeViewItemViewModel userNode = new(Environment.UserName, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), $"{Environment.UserName}的Home");
+            CreateChildNode(userNode);
+            rt.Add(userNode);
+            return rt;
         }
 
         public static void CreateNode(TreeViewItemViewModel node, List<string> pathRoute)

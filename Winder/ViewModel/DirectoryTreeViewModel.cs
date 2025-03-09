@@ -16,7 +16,6 @@ namespace Winder.ViewModel
             rootNode = [];
 
         }
-        private List<string>? pathRoute;
 
         
         private ObservableCollection<TreeViewItemViewModel> rootNode;

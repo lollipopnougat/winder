@@ -53,12 +53,19 @@
 				<Button Classes="btn" Grid.Column="0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding CanGoBack}" Command="{Binding BackBtnClickCommand}">&#xf060;</Button>
 				<Button Classes="btn" Grid.Column="1" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding CanGoForward}" Command="{Binding ForwardBtnClickCommand}">&#xf061;</Button>
 				<Button Classes="btn" Grid.Column="2" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" IsEnabled="{Binding UpBtnEnabled}" Command="{Binding UpBtnClickCommand}" >&#xf062;</Button>
-				<AutoCompleteBox Grid.Column="3" Margin="0" Height="32" FilterMode="StartsWith" Text="{Binding PathBoxText}">
-					<!-- AsyncPopulator="{Binding MyAutoCompletePath}" -->
+				<AutoCompleteBox Grid.Column="3" Margin="0" x:Name="autoCompleteBox" Text="{Binding PathBoxText}" Height="32" FilterMode="StartsWith" AsyncPopulator="{Binding MyAutoCompletePath}">
 					<AutoCompleteBox.KeyBindings>
 						<KeyBinding Command="{Binding SetAddressPathFromUICommand}" Gesture="Enter" />
 					</AutoCompleteBox.KeyBindings>
+					<Interaction.Behaviors>
+						<EventTriggerBehavior EventName="SelectionChanged">
+							<InvokeCommandAction Command="{Binding SetAddressPathFromUICommand}" />
+						</EventTriggerBehavior>
+					</Interaction.Behaviors>
 				</AutoCompleteBox>
+				<Panel Margin="0,0,5,0" Grid.Column="3" IsVisible="{Binding Text,ElementName=autoCompleteBox,Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+					<Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,2,0,0" FontSize="18" Padding="5,2,5,2" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding ClearAddressBoxCommand}">&#xf00d;</Button>
+				</Panel>
 				<Button Grid.Column="4" Margin="5,0,0,0" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding SetAddressPathFromUICommand}">&#xf2f9;</Button>
 			</Grid>
 			<Grid Grid.Row="2">
@@ -81,11 +88,15 @@
 					</TreeView.ItemTemplate>
 				</TreeView>
 				<GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
-				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}" CanUserSortColumns="True" CanUserResizeColumns="True" x:Name="dataGrid">
+				<DataGrid Grid.Column="2" Margin="0" ItemsSource="{Binding FileItems}" SelectionMode="Single" CanUserSortColumns="True" CanUserResizeColumns="True" x:Name="dataGrid">
 					<DataGrid.Resources>
 						<ContextMenu x:Key="gridRowMenu">
 							<MenuItem Header="打开" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).DoubleClickCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}"
-									  />
+									  >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf135;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold"/>
+								</MenuItem.Icon>
+							</MenuItem>
 							<MenuItem Header="复制" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).CopyFileClickCommand}"
 									  CommandParameter="{Binding #dataGrid.SelectedItem}" >
 								<MenuItem.Icon>
@@ -103,6 +114,11 @@
 									   IsVisible="{Binding #mainWindow.((vm:MainViewModel)DataContext).CanPaste}" >
 								<MenuItem.Icon>
 									<TextBlock Text="&#xf0ea;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
+								</MenuItem.Icon>
+							</MenuItem>
+							<MenuItem Header="重命名" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RenameFileClickCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}" >
+								<MenuItem.Icon>
+									<TextBlock Text="&#xf246;" TextAlignment="Center" FontSize="24" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" />
 								</MenuItem.Icon>
 							</MenuItem>
 							<MenuItem Header="删除" Command="{Binding #mainWindow.((vm:MainViewModel)DataContext).RemoveFileClickCommand}" CommandParameter="{Binding #dataGrid.SelectedItem}" >
@@ -169,11 +185,36 @@
 								</DataTemplate>
 							</DataGridTemplateColumn.CellTemplate>
 						</DataGridTemplateColumn>
-						<DataGridTextColumn Header="名称" Width="150" Binding="{Binding Name}" IsReadOnly="True" />
+						<DataGridTemplateColumn Header="名称" Width="300">
+							<DataGridTemplateColumn.CellTemplate>
+								<DataTemplate>
+									<Grid>
+										<Grid.RowDefinitions>
+											<RowDefinition Height="*" />
+										</Grid.RowDefinitions>
+										<TextBlock Grid.Row="0" VerticalAlignment="Center" Text="{Binding Name}" Margin="5,0,0,0" IsVisible="{Binding !Editing}"/>
+										<Grid Classes="line" Grid.Row="0" Margin="0" IsVisible="{Binding Editing}">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="*" />
+												<ColumnDefinition Width="35" />
+												<ColumnDefinition Width="35" />
+											</Grid.ColumnDefinitions>
+											<FlyoutBase.AttachedFlyout>
+												<Flyout><TextBlock Text="{Binding ErrorText}" /></Flyout>
+											</FlyoutBase.AttachedFlyout>
+											<TextBox Grid.Column="0" Text="{Binding EditText}"/>
+											<Button Grid.Column="1" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding CancelNameCommand}" Margin="2,0,0,0" Width="32">&#xf00d;</Button>
+											<Button Grid.Column="2" Background="Transparent" FontFamily="{StaticResource FontAwesome}" FontWeight="Bold" Command="{Binding SubmitNameCommand}" CommandParameter="{Binding $parent}" Margin="2,0,0,0" Width="32">
+												&#xf00c;
+											</Button>
+										</Grid>
+									</Grid>
+								</DataTemplate>
+							</DataGridTemplateColumn.CellTemplate>
+						</DataGridTemplateColumn>
 						<DataGridTextColumn Header="修改日期" Width="150" Binding="{Binding LastWriteTime}" IsReadOnly="True" />
 						<DataGridTextColumn Header="类型" Width="100" Binding="{Binding FileTypeStr}" IsReadOnly="True" />
 						<DataGridTextColumn Header="大小" Width="100" Binding="{Binding Length}" IsReadOnly="True" />
-						
 					</DataGrid.Columns>
 				</DataGrid>
 				<Grid Grid.Column="2" Margin="0" Background="Transparent" IsVisible="{Binding IsError}">
@@ -184,7 +225,6 @@
 					</ExperimentalAcrylicBorder>
 					<Panel Margin="0">
 						<TextBlock FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding ErrorMsg}" />
-						
 					</Panel>
 				</Grid>
 			</Grid>

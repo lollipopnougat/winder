@@ -82,7 +82,8 @@ namespace Winder.Service
             try
             {
                 rt.AddRange(Directory.GetDirectories(path).Select(x => Path.GetFileName(x)));
-            } catch (Exception err)
+            }
+            catch (Exception err)
             {
                 Debug.WriteLine($"err {err}");
             }
@@ -147,26 +148,54 @@ namespace Winder.Service
                 else
                 {
                     string fileName = Path.GetFileName(source);
-                    File.Copy(source, Path.Combine(destination, fileName));
+                    string target = Path.Combine(destination, fileName);
+                    if (File.Exists(target))
+                    {
+                        string fileNameNoExt = Path.GetFileNameWithoutExtension(fileName);
+                        string ext = Path.GetExtension(fileName);
+                        target = $"{Path.Combine(destination, fileNameNoExt)}-副本{ext}";
+                    }
+                    File.Copy(source, target);
                 }
             });
         }
 
-        public static async Task MoveFileAsync(string source, string destination)
+        public static async Task<bool> MoveFileAsync(string source, string destination)
         {
-            await Task.Run(() =>
+            try
             {
-                bool isDir = Directory.Exists(source);
-                string fileName = Path.GetFileName(source);
-                if (isDir)
+                await Task.Run(() =>
                 {
-                    Directory.Move(source, Path.Combine(destination, fileName));
-                } else
-                {
-                    
-                    File.Move(source, Path.Combine(destination, fileName));
-                }
-            });
+                    bool isDir = Directory.Exists(source);
+                    string fileName = Path.GetFileName(source);
+                    if (isDir)
+                    {
+                        Directory.Move(source, Path.Combine(destination, fileName));
+                    }
+                    else
+                    {
+
+                        File.Move(source, Path.Combine(destination, fileName));
+                    }
+                });
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+        }
+
+
+        public static async Task<bool> RenameFile(string path, string newName)
+        {
+            var dirPath = Path.GetDirectoryName(path);
+            if (dirPath != null)
+            {
+                return await MoveFileAsync(path, Path.Combine(dirPath, newName));
+            }
+            return false;
         }
     }
 }
