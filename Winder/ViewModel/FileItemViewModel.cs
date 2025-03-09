@@ -20,7 +20,7 @@ namespace Winder.ViewModel
 {
     public partial class FileItemViewModel : ViewModelBase
     {
-        public FileItemViewModel(FileItem fileItem)
+        public FileItemViewModel(FileItem fileItem, Action updateAction)
         {
             this.creationTime = fileItem.CreationTime.ToString("g");
             this.fileType = fileItem.FileType;
@@ -32,6 +32,7 @@ namespace Winder.ViewModel
             this.FullPath = fileItem.FullPath;
             this.FileTypeStr = fileItem.FileTypeStr;
             this.ErrorText = "";
+            UpdateAction = updateAction;
         }
 
         private static string GetFileLengthStr(long len)
@@ -82,11 +83,12 @@ namespace Winder.ViewModel
         [ObservableProperty]
         private string fileTypeStr;
 
+        private Action UpdateAction;
         public string FullPath;
 
-        public static FileItemViewModel CreateViewModel(FileSystemInfo file)
+        public static FileItemViewModel CreateViewModel(FileSystemInfo file, Action action)
         {
-            return new FileItemViewModel(new FileItem(file));
+            return new FileItemViewModel(new FileItem(file), action);
         }
 
         [RelayCommand]
@@ -101,6 +103,7 @@ namespace Winder.ViewModel
                 {
                     Editing = false;
                     Name = EditText;
+                    UpdateAction.Invoke();
                 } else
                 {
                     ErrorText = $"重命名失败";

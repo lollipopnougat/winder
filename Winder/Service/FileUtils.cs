@@ -160,30 +160,45 @@ namespace Winder.Service
             });
         }
 
-        public static async Task<bool> MoveFileAsync(string source, string destination)
+        public static async Task<bool> MoveFileAsync(string source, string destination, bool isRename)
         {
-            try
+            return await Task.Run<bool>(() =>
             {
-                await Task.Run(() =>
+                try
                 {
                     bool isDir = Directory.Exists(source);
                     string fileName = Path.GetFileName(source);
                     if (isDir)
                     {
-                        Directory.Move(source, Path.Combine(destination, fileName));
+                        if (isRename)
+                        {
+                            Directory.Move(source, destination);
+                        }
+                        else
+                        {
+                            Directory.Move(source, Path.Combine(destination, fileName));
+                        }
                     }
                     else
                     {
-
-                        File.Move(source, Path.Combine(destination, fileName));
+                        if (isRename)
+                        {
+                            File.Move(source, destination);
+                        }
+                        else
+                        {
+                            File.Move(source, Path.Combine(destination, fileName));
+                        }
                     }
-                });
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+
+            });
+
 
         }
 
@@ -193,7 +208,7 @@ namespace Winder.Service
             var dirPath = Path.GetDirectoryName(path);
             if (dirPath != null)
             {
-                return await MoveFileAsync(path, Path.Combine(dirPath, newName));
+                return await MoveFileAsync(path, Path.Combine(dirPath, newName), true);
             }
             return false;
         }

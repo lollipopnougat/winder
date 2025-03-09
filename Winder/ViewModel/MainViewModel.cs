@@ -186,10 +186,10 @@ namespace Winder.ViewModel
                     {
                         if (!(isRoot && FileUtils.windowsSystemDirs.Contains(dirInfo.Name.ToLower())))
                         {
-                            FileItems.Add(FileItemViewModel.CreateViewModel(dirInfo));
+                            FileItems.Add(FileItemViewModel.CreateViewModel(dirInfo, this.RefreshList));
                         }
                     });
-                    files.ForEach(file => FileItems.Add(FileItemViewModel.CreateViewModel(file)));
+                    files.ForEach(file => FileItems.Add(FileItemViewModel.CreateViewModel(file, this.RefreshList)));
                     StatusText = $"{FileItems.Count}个项目";
                 }
                 catch (UnauthorizedAccessException)
@@ -330,7 +330,7 @@ namespace Winder.ViewModel
                 {
                     StatusText = "移动文件中...";
                     store.IsCutPaste = false;
-                    await FileUtils.MoveFileAsync(store.CopyFile.FullPath, Cwd);
+                    await FileUtils.MoveFileAsync(store.CopyFile.FullPath, Cwd, false);
                     RefreshList();
                 }
                 else
